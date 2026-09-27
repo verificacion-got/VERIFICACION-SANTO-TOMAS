@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verificación de Certificados</title>
+    <style>
+        /* ESTILOS GENERALES (Para que se vea igual a la web original) */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Roboto', sans-serif; /* Fuente estándar */
+            background-color: #0f5f54; /* Verde oscuro exacto */
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* CONTENEDOR PRINCIPAL */
+        .container {
+            width: 100%;
+            max-width: 450px;
+            padding: 20px;
+            box-sizing: border-box;
+            text-align: center;
+            margin-top: 50px;
+        }
+
+        /* LOGO */
+        .logo-img {
+            max-width: 200px; /* Tamaño del logo */
+            margin-bottom: 30px;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* TÍTULO */
+        h1 {
+            font-size: 18px;
+            font-weight: 400;
+            margin-bottom: 40px;
+            color: #d1e8e5; /* Color grisáceo/verde claro del texto */
+        }
+
+        /* BOTÓN VALIDAR */
+        .btn-validar {
+            background-color: #ff9900; /* Naranja */
+            color: white;
+            border: none;
+            padding: 12px 40px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-bottom: 30px;
+            text-transform: uppercase;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            width: 160px;
+        }
+        
+        .btn-validar:active {
+            background-color: #e68a00;
+        }
+
+        /* RECAPTCHA (Diseño exacto visual) */
+        .recaptcha-container {
+            background-color: #ffffff;
+            width: 300px; /* Ancho estándar de recaptcha */
+            height: 74px;
+            border-radius: 3px;
+            border: 1px solid #d3d3d3;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 12px;
+            margin: 0 auto; /* Centrado */
+            box-sizing: border-box;
+        }
+
+        .recaptcha-left {
+            display: flex;
+            align-items: center;
+        }
+
+        .checkbox-box {
+            width: 24px;
+            height: 24px;
+            border: 2px solid #c1c1c1;
+            border-radius: 2px;
+            background-color: #fff;
+            margin-right: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .checkbox-box.checked {
+            border: none;
+        }
+
+        .checkmark {
+            display: none;
+            width: 28px;
+            height: 28px;
+        }
+        
+        /* Spinner de carga simulado */
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            animation: spin 1s linear infinite;
+            display: none;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .recaptcha-text {
+            color: #000;
+            font-family: Roboto, Arial, sans-serif;
+            font-size: 14px;
+            font-weight: 400;
+        }
+
+        .recaptcha-right {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-right: 2px;
+        }
+
+        .recaptcha-logo-img {
+            width: 32px;
+            height: 32px;
+            opacity: 0.7;
+            margin-bottom: 2px;
+        }
+
+        .recaptcha-terms {
+            font-size: 8px;
+            color: #555;
+            text-align: center;
+            line-height: 10px;
+        }
+
+        /* MENSAJE DE ERROR */
+        .error-msg {
+            color: #ffcccc;
+            font-size: 13px;
+            margin-top: 15px;
+            display: none;
+        }
+
+        /* --- PANTALLA 2: RESULTADOS (Oculta al principio) --- */
+        #pantalla-resultados {
+            display: none;
+            background-color: white; /* Fondo blanco para los datos */
+            width: 100%;
+            min-height: 100vh; /* Ocupa toda la pantalla */
+            color: #333;
+            padding-top: 40px;
+            box-sizing: border-box;
+        }
+
+        .resultados-content {
+            width: 90%;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Logo en pantalla de resultados (fondo verde para que resalte si es blanco) */
+        .header-resultados {
+            background-color: #0f5f54;
+            padding: 20px;
+            margin-bottom: 30px;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        .titulo-valido {
+            color: #0f5f54;
+            border-bottom: 3px solid #ff9900;
+            padding-bottom: 10px;
+            margin-bottom: 25px;
+            text-align: center;
+            text-transform: uppercase;
+            font-size: 20px;
+        }
+
+        .dato-fila {
+            border-bottom: 1px solid #eee;
+            padding: 15px 0;
+            display: flex;
+            flex-direction: column;
+            text-align: left;
+        }
+
+        .dato-label {
+            font-size: 12px;
+            color: #888;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        .dato-valor {
+            font-size: 16px;
+            color: #000;
+            font-weight: 500;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div id="pantalla-inicio" class="container">
+        
+        <img src="santo.jpeg" alt="Santo Tomás" class="logo-img">
+
+        <h1>Verificación de certificados de egreso</h1>
+
+        <button class="btn-validar" onclick="intentarValidar()">VALIDAR</button>
+
+        <div class="recaptcha-container">
+            <div class="recaptcha-left">
+                <div class="checkbox-box" id="check-box" onclick="activarCaptcha()">
+                    <div class="spinner" id="spinner"></div>
+                    <img src="https://www.gstatic.com/recaptcha/api2/checkmark.png" class="checkmark" id="checkmark" alt="Check">
+                </div>
+                <span class="recaptcha-text">No soy un robot</span>
+            </div>
+            <div class="recaptcha-right">
+                <img src="https://www.gstatic.com/recaptcha/api2/logo_48.png" class="recaptcha-logo-img" alt="Logo">
+                <div class="recaptcha-terms">reCAPTCHA<br>Privacidad - Términos</div>
+            </div>
+        </div>
+
+        <div id="mensaje-error" class="error-msg">Por favor, completa el captcha.</div>
+    </div>
+
+
+    <div id="pantalla-resultados">
+        <div class="resultados-content">
+            
+            <div class="header-resultados">
+                <img src="santo.jpeg" alt="Santo Tomás" style="max-width: 180px;">
+            </div>
+
+            <h2 class="titulo-valido">Certificado Válido</h2>
+
+            <div class="dato-fila">
+                <span class="dato-label">Nombre</span>
+                <span class="dato-valor">RICHARD OBER VILLEGAS GUERRA</span>
+            </div>
+
+            <div class="dato-fila">
+                <span class="dato-label">RUT</span>
+                <span class="dato-valor">10.019.464-3</span>
+            </div>
+
+            <div class="dato-fila">
+                <span class="dato-label">Año de Egreso</span>
+                <span class="dato-valor">13/12/2024</span>
+            </div>
+
+            <div class="dato-fila">
+                <span class="dato-label">Sede</span>
+                <span class="dato-valor">IQUIQUE</span>
+            </div>
+
+            <div class="dato-fila">
+                <span class="dato-label">Carrera</span>
+                <span class="dato-valor">INGENIERÍA EN MANTENIMIENTO INDUSTRIAL</span>
+            </div>
+
+            <div class="dato-fila">
+                <span class="dato-label">Nota Final</span>
+                <span class="dato-valor">5,6</span>
+            </div>
+
+            <div class="dato-fila">
+                <span class="dato-label">Modalidad</span>
+                <span class="dato-valor">VESPERTINA SEMIPRESENCIAL</span>
+            </div>
+
+            <button class="btn-validar" style="width: 100%; margin-top: 30px;" onclick="location.reload()">VOLVER</button>
+
+        </div>
+    </div>
+
+    <script>
+        let captchaEstaListo = false;
+
+        function activarCaptcha() {
+            if (!captchaEstaListo) {
+                // Muestra spinner de carga
+                document.getElementById('spinner').style.display = 'block';
+                
+                // Espera 1 segundo simulando carga
+                setTimeout(function() {
+                    document.getElementById('spinner').style.display = 'none';
+                    document.getElementById('checkmark').style.display = 'block'; // Muestra el check
+                    document.getElementById('check-box').classList.add('checked'); // Quita borde
+                    document.getElementById('mensaje-error').style.display = 'none'; // Quita error si había
+                    captchaEstaListo = true;
+                }, 800);
+            }
+        }
+
+        function intentarValidar() {
+            if (captchaEstaListo) {
+                // OCULTAR PANTALLA 1
+                document.getElementById('pantalla-inicio').style.display = 'none';
+                
+                // MOSTRAR PANTALLA 2
+                document.getElementById('pantalla-resultados').style.display = 'block';
+                
+                // CAMBIAR EL COLOR DE FONDO DEL BODY (Para que la segunda pantalla sea blanca)
+                document.body.style.backgroundColor = 'white';
+                
+                // IR AL PRINCIPIO DE LA PÁGINA
+                window.scrollTo(0, 0);
+            } else {
+                // MOSTRAR ERROR SI NO HIZO CLICK EN CAPTCHA
+                document.getElementById('mensaje-error').style.display = 'block';
+            }
+        }
+    </script>
+
+</body>
+</html>
